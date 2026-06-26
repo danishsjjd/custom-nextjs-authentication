@@ -1,8 +1,10 @@
-import { env } from "@/data/env/server"
+import { getDiscordOAuthEnv } from "@/data/env/oauth"
 import { OAuthClient } from "./base"
 import { z } from "zod"
 
 export function createDiscordOAuthClient() {
+  const env = getDiscordOAuthEnv()
+
   return new OAuthClient({
     provider: "discord",
     clientId: env.DISCORD_CLIENT_ID,

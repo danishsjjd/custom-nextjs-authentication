@@ -1,4 +1,4 @@
-import { env } from "@/data/env/server"
+import { dbEnv } from "@/data/env/db"
 import { defineConfig } from "drizzle-kit"
 
 export default defineConfig({
@@ -8,10 +8,10 @@ export default defineConfig({
   strict: true,
   verbose: true,
   dbCredentials: {
-    password: env.DB_PASSWORD!,
-    user: env.DB_USER!,
-    database: env.DB_NAME!,
-    host: env.DB_HOST!,
+    password: dbEnv.DB_PASSWORD!,
+    user: dbEnv.DB_USER!,
+    database: dbEnv.DB_NAME!,
+    host: dbEnv.DB_HOST!,
     ssl: false,
   },
 })

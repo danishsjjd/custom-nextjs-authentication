@@ -1,8 +1,10 @@
-import { env } from "@/data/env/server"
+import { getGithubOAuthEnv } from "@/data/env/oauth"
 import { OAuthClient } from "./base"
 import { z } from "zod"
 
 export function createGithubOAuthClient() {
+  const env = getGithubOAuthEnv()
+
   return new OAuthClient({
     provider: "github",
     clientId: env.GITHUB_CLIENT_ID,

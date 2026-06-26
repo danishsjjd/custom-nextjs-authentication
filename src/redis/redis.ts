@@ -1,7 +1,7 @@
-import { env } from "@/data/env/server"
+import { redisEnv } from "@/data/env/redis"
 import { Redis } from "@upstash/redis"
 
 export const redisClient = new Redis({
-  url: env.REDIS_URL,
-  token: env.REDIS_TOKEN,
+  url: redisEnv.REDIS_URL,
+  token: redisEnv.REDIS_TOKEN,
 })

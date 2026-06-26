@@ -11,7 +11,7 @@ import {
   generateSalt,
   hashPassword,
 } from "../core/passwordHasher"
-import { cookies } from "next/headers"
+import { cookies, headers } from "next/headers"
 import { createUserSession, removeUserFromSession } from "../core/session"
 import { getOAuthClient } from "../core/oauth/base"
 
@@ -83,5 +83,16 @@ export async function logOut() {
 
 export async function oAuthSignIn(provider: OAuthProvider) {
   const oAuthClient = getOAuthClient(provider)
-  redirect(oAuthClient.createAuthUrl(await cookies()))
+  redirect(oAuthClient.createAuthUrl(await cookies(), await getRequestOrigin()))
+}
+
+async function getRequestOrigin() {
+  const requestHeaders = await headers()
+  const host =
+    requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host")
+  const protocol = requestHeaders.get("x-forwarded-proto") ?? "http"
+
+  if (host == null) throw new Error("Unable to determine request host")
+
+  return `${protocol}://${host}`
 }

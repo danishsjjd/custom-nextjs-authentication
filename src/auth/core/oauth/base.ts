@@ -1,4 +1,3 @@
-import { env } from "@/data/env/server"
 import { Cookies } from "../session"
 import { z } from "zod"
 import crypto from "crypto"
@@ -60,16 +59,17 @@ export class OAuthClient<T> {
     this.userInfo = userInfo
   }
 
-  private get redirectUrl() {
-    return new URL(this.provider, env.OAUTH_REDIRECT_URL_BASE)
+  private redirectUrl(origin: string) {
+    return new URL(`/api/oauth/${this.provider}`, origin)
   }
 
-  createAuthUrl(cookies: Pick<Cookies, "set">) {
+  createAuthUrl(cookies: Pick<Cookies, "set">, origin: string) {
     const state = createState(cookies)
     const codeVerifier = createCodeVerifier(cookies)
     const url = new URL(this.urls.auth)
+    const redirectUrl = this.redirectUrl(origin)
     url.searchParams.set("client_id", this.clientId)
-    url.searchParams.set("redirect_uri", this.redirectUrl.toString())
+    url.searchParams.set("redirect_uri", redirectUrl.toString())
     url.searchParams.set("response_type", "code")
     url.searchParams.set("scope", this.scopes.join(" "))
     url.searchParams.set("state", state)
@@ -81,13 +81,19 @@ export class OAuthClient<T> {
     return url.toString()
   }
 
-  async fetchUser(code: string, state: string, cookies: Pick<Cookies, "get">) {
+  async fetchUser(
+    code: string,
+    state: string,
+    cookies: Pick<Cookies, "get">,
+    origin: string
+  ) {
     const isValidState = await validateState(state, cookies)
     if (!isValidState) throw new InvalidStateError()
 
     const { accessToken, tokenType } = await this.fetchToken(
       code,
-      getCodeVerifier(cookies)
+      getCodeVerifier(cookies),
+      origin
     )
 
     const user = await fetch(this.urls.user, {
@@ -106,7 +112,7 @@ export class OAuthClient<T> {
     return this.userInfo.parser(user)
   }
 
-  private fetchToken(code: string, codeVerifier: string) {
+  private fetchToken(code: string, codeVerifier: string, origin: string) {
     return fetch(this.urls.token, {
       method: "POST",
       headers: {
@@ -115,7 +121,7 @@ export class OAuthClient<T> {
       },
       body: new URLSearchParams({
         code,
-        redirect_uri: this.redirectUrl.toString(),
+        redirect_uri: this.redirectUrl(origin).toString(),
         grant_type: "authorization_code",
         client_id: this.clientId,
         client_secret: this.clientSecret,

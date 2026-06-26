@@ -7,8 +7,8 @@ import {
 const privateRoutes = ["/private"]
 const adminRoutes = ["/admin"]
 
-export async function middleware(request: NextRequest) {
-  const response = (await middlewareAuth(request)) ?? NextResponse.next()
+export async function proxy(request: NextRequest) {
+  const response = (await proxyAuth(request)) ?? NextResponse.next()
 
   await updateUserSessionExpiration({
     set: (key, value, options) => {
@@ -20,7 +20,7 @@ export async function middleware(request: NextRequest) {
   return response
 }
 
-async function middlewareAuth(request: NextRequest) {
+async function proxyAuth(request: NextRequest) {
   if (privateRoutes.includes(request.nextUrl.pathname)) {
     const user = await getUserFromSession(request.cookies)
     if (user == null) {

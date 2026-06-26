@@ -1,6 +1,5 @@
 import { userRoles } from "@/drizzle/schema"
 import { z } from "zod"
-import crypto from "crypto"
 import { redisClient } from "@/redis/redis"
 
 // Seven days in seconds
@@ -51,7 +50,7 @@ export async function createUserSession(
   user: UserSession,
   cookies: Pick<Cookies, "set">
 ) {
-  const sessionId = crypto.randomBytes(512).toString("hex").normalize()
+  const sessionId = createSessionId()
   await redisClient.set(`session:${sessionId}`, sessionSchema.parse(user), {
     ex: SESSION_EXPIRATION_SECONDS,
   })
@@ -99,4 +98,10 @@ async function getUserSessionById(sessionId: string) {
   const { success, data: user } = sessionSchema.safeParse(rawUser)
 
   return success ? user : null
+}
+
+function createSessionId() {
+  const bytes = new Uint8Array(64)
+  crypto.getRandomValues(bytes)
+  return Array.from(bytes, byte => byte.toString(16).padStart(2, "0")).join("")
 }
